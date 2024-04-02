@@ -1,90 +1,95 @@
-import { createUserWithEmailAndPassword } from 'firebase/auth'
+import {
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+} from 'firebase/auth'
+import { useRef, useState } from 'react'
+import { VscEye, VscEyeClosed } from 'react-icons/vsc'
 import auth from '../firebase/firebase.config'
-import { useState } from 'react'
-import { FaEye } from 'react-icons/fa'
-import { FaEyeSlash } from 'react-icons/fa'
-import { VscEye } from 'react-icons/vsc'
-import { VscEyeClosed } from 'react-icons/vsc'
 import { Link } from 'react-router-dom'
-const Login = () => {
-  const [loginError, setLoginError] = useState('')
-  const [loginTextError, setloginTextError] = useState('')
-  const [passTextError, setPassTextError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [checkbox, setCheckbox] = useState(false)
 
-  const clicked = () => {
-    setCheckbox(true)
-  }
+const Login = () => {
+  const [showPassword, setShowPassword] = useState(false)
+  const [passLen, setPassLen] = useState('')
+
+  const emailRef = useRef(null)
+
   const handleLogin = (e) => {
     e.preventDefault()
-    console.log(e)
-
     const email = e.target.email.value
     const password = e.target.password.value
-    const checked = e.target.terms.checked
-    console.log(email, password, checked)
+    console.log(email, password)
+    // console.log('email ref : ', emailRef.current.value)
+
+    setPassLen('')
+
+    signInWithEmailAndPassword(auth, email, password)
+      .then((result) => console.log(result.user))
+      .catch((error) => {
+        console.log(error)
+        // const errorMessage = 'Firebase: Error (auth/invalid-credential).'
+        error.message === 'Firebase: Error (auth/invalid-credential).'
+          ? setPassLen('Incorrect Password')
+          : setPassLen(error.message)
+      })
 
     if (password.length < 6) {
-      setLoginError('Password should be at least 6 character')
-      setPassTextError('Password should be at least 6 character')
-      return // returning so that the validation stops here, no need to go to database in firebase
+      setPassLen('Password should be at least 6 character')
+      return
     } else if (!/[A-Z]/.test(password)) {
-      // using Regex (regular expression)
-      setLoginError('Password must contain uppercase letter')
-      setPassTextError('Password must contain uppercase letter')
+      setPassLen('Password must contain uppercase letter')
       return
     } else {
-      setSuccess('You have created account successfully')
+      setPassLen('You have successfully logged in')
+      return
     }
-
-    // setting them empty after one iteration
-    setLoginError('')
-    setloginTextError('')
-    setloginTextError('')
-
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((result) => {
-        console.log(result)
-      })
-      .catch((error) => {
-        console.log(error.code)
-        console.log(error.message)
-        setLoginError(error.message)
-      })
   }
-
+  const handleForgetPassword = () => {
+    // console.log('Sent reset email', emailRef.current.value)
+    const resetMail = emailRef.current.value
+    if (!resetMail) {
+      setPassLen('Please Enter you email address')
+      return
+    } else if (
+      !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(resetMail)
+    ) {
+      setPassLen('Please write a valid email')
+      return
+    } else {
+      sendPasswordResetEmail(auth, resetMail)
+        .then(() => alert('please check your email'))
+        .catch((error) => console.log(error.message))
+    }
+  }
   return (
     <div>
-      <div className="w-1/3 mx-auto my-[50px] max-w-md p-8 space-y-3 rounded-xl bg-gray-900 dark:bg-gray-50 text-gray-100 dark:text-gray-800">
+      <div className="w-1/2 mx-auto  my-[50px] max-w-md p-8 space-y-3 rounded-xl bg-gray-900 dark:bg-gray-50 text-gray-100 dark:text-gray-800">
         <h1 className="text-2xl font-bold text-center">Login</h1>
+
+        {/* Main form using mail and password */}
         <form
           onSubmit={handleLogin}
           noValidate=""
           action=""
           className="space-y-6"
         >
+          {/* Email */}
           <div className="space-y-1 text-sm">
             <label
-              htmlFor="username"
+              htmlFor="email"
               className="block text-gray-400 dark:text-gray-600"
             >
               Email
             </label>
             <input
-              required
+              ref={emailRef}
               type="email"
               name="email"
-              id="username"
+              id="email"
               placeholder="Email"
-              className="border w-full px-4 py-3 rounded-md border-gray-700 dark:border-gray-300 bg-gray-900 dark:bg-gray-50 text-gray-100 dark:text-gray-800 focus:border-indigo-400 focus:dark:border-indigo-600"
+              className="w-full border px-4 py-3 rounded-md border-gray-700 dark:border-gray-300 bg-gray-900 dark:bg-gray-50 text-gray-100 dark:text-gray-800 focus:border-indigo-400 focus:dark:border-indigo-600"
             />
-            {loginTextError && (
-              <p className="text-red-500 text-[8px]">{loginTextError}</p>
-            )}
           </div>
-
+          {/* password  */}
           <div className="space-y-1 text-sm">
             <label
               htmlFor="password"
@@ -109,37 +114,30 @@ const Login = () => {
                 {showPassword ? <VscEye /> : <VscEyeClosed />}
               </div>
             </div>
-
-            {passTextError && (
-              <p className="text-red-500 text-[8px]">{passTextError}</p>
-            )}
             <div className="flex justify-end text-xs text-gray-400 dark:text-gray-600">
-              <a rel="noopener noreferrer" href="#">
+              <a
+                onClick={handleForgetPassword}
+                rel="noopener noreferrer"
+                href="#"
+              >
                 Forgot Password?
               </a>
             </div>
           </div>
-          <div className="form-control flex flex-row items-center gap-1">
-            <input
-              onClick={clicked}
-              type="checkbox"
-              name="terms"
-              className="checkbox checkbox-primary text-[14px] checkbox-xs"
-            />
-            <label className="label cursor-pointer text-[14px]">
-              <Link to="/terms-condition"> Accept Terms & Conditions</Link>
-            </label>
-          </div>
-          <button
-            className={
-              checkbox
-                ? 'block w-full p-3 text-center rounded-sm text-gray-900 dark:text-gray-50 bg-indigo-400 dark:bg-indigo-600'
-                : 'block w-full btn btn-disabled p-3 text-center rounded-sm text-gray-900 dark:text-white'
-            }
-          >
+          {/* Login button  */}
+          <button className="block w-full p-3 text-center rounded-sm text-gray-900 dark:text-gray-50 bg-indigo-400 dark:bg-indigo-600">
             Sign in
           </button>
+          <div>
+            {passLen === 'You have successfully logged in' ? (
+              <p className="text-sm text-green-600 text-center">{passLen}</p>
+            ) : (
+              <p className="text-sm text-red-600 text-center">{passLen}</p>
+            )}
+          </div>
         </form>
+
+        {/*  login with social account */}
         <div className="flex items-center pt-4 space-x-1">
           <div className="flex-1 h-px sm:w-16 bg-gray-700 dark:bg-gray-300"></div>
           <p className="px-3 text-sm text-gray-400 dark:text-gray-600">
@@ -178,13 +176,14 @@ const Login = () => {
         </div>
         <p className="text-xs text-center sm:px-6 text-gray-400 dark:text-gray-600">
           Don&apos;t have an account?
-          <a
+          <Link
+            to="/signup"
             rel="noopener noreferrer"
             href="#"
             className="underline text-gray-100 dark:text-gray-800"
           >
             Sign up
-          </a>
+          </Link>
         </p>
       </div>
     </div>

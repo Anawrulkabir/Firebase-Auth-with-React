@@ -1,16 +1,19 @@
-import { createUserWithEmailAndPassword } from 'firebase/auth'
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from 'firebase/auth'
 import auth from '../firebase/firebase.config'
 import { useState } from 'react'
-import { FaEye } from 'react-icons/fa'
-import { FaEyeSlash } from 'react-icons/fa'
+
 import { VscEye } from 'react-icons/vsc'
 import { VscEyeClosed } from 'react-icons/vsc'
 import { Link } from 'react-router-dom'
+import { ToastContainer, toast } from 'react-toastify'
 const Login = () => {
-  const [loginError, setLoginError] = useState('')
+  // const [loginError, setLoginError] = useState('')
   const [loginTextError, setloginTextError] = useState('')
   const [passTextError, setPassTextError] = useState('')
-  const [success, setSuccess] = useState('')
+  // const [success, setSuccess] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [checkbox, setCheckbox] = useState(false)
 
@@ -27,38 +30,42 @@ const Login = () => {
     console.log(email, password, checked)
 
     if (password.length < 6) {
-      setLoginError('Password should be at least 6 character')
+      // setLoginError('Password should be at least 6 character')
       setPassTextError('Password should be at least 6 character')
       return // returning so that the validation stops here, no need to go to database in firebase
     } else if (!/[A-Z]/.test(password)) {
       // using Regex (regular expression)
-      setLoginError('Password must contain uppercase letter')
+      // setLoginError('Password must contain uppercase letter')
       setPassTextError('Password must contain uppercase letter')
       return
     } else {
-      setSuccess('You have created account successfully')
+      // setSuccess('You have created account successfully')
     }
 
     // setting them empty after one iteration
-    setLoginError('')
+    // setLoginError('')
     setloginTextError('')
     setloginTextError('')
 
     createUserWithEmailAndPassword(auth, email, password)
       .then((result) => {
-        console.log(result)
+        console.log(result.user)
+
+        sendEmailVerification(result.user).then(() =>
+          alert('Please Check You Email & Verify Your Account')
+        )
       })
       .catch((error) => {
         console.log(error.code)
         console.log(error.message)
-        setLoginError(error.message)
+        // setLoginError(error.message)
       })
   }
 
   return (
     <div>
-      <div className="w-1/3 mx-auto my-[50px] max-w-md p-8 space-y-3 rounded-xl bg-gray-900 dark:bg-gray-50 text-gray-100 dark:text-gray-800">
-        <h1 className="text-2xl font-bold text-center">Login</h1>
+      <div className="w-1/2 mx-auto my-[50px] max-w-md p-8 space-y-3 rounded-xl bg-gray-900 dark:bg-gray-50 text-gray-100 dark:text-gray-800">
+        <h1 className="text-2xl font-bold text-center">Sign Up</h1>
         <form
           onSubmit={handleLogin}
           noValidate=""
@@ -113,11 +120,11 @@ const Login = () => {
             {passTextError && (
               <p className="text-red-500 text-[8px]">{passTextError}</p>
             )}
-            <div className="flex justify-end text-xs text-gray-400 dark:text-gray-600">
+            {/* <div className="flex justify-end text-xs text-gray-400 dark:text-gray-600">
               <a rel="noopener noreferrer" href="#">
                 Forgot Password?
               </a>
-            </div>
+            </div> */}
           </div>
           <div className="form-control flex flex-row items-center gap-1">
             <input
@@ -177,14 +184,15 @@ const Login = () => {
           </button>
         </div>
         <p className="text-xs text-center sm:px-6 text-gray-400 dark:text-gray-600">
-          Don&apos;t have an account?
-          <a
+          Already have an account?
+          <Link
+            to="/login"
             rel="noopener noreferrer"
             href="#"
             className="underline text-gray-100 dark:text-gray-800"
           >
-            Sign up
-          </a>
+            Login
+          </Link>
         </p>
       </div>
     </div>
