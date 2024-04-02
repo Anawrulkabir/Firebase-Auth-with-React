@@ -1,6 +1,8 @@
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
+  updateCurrentUser,
+  updateProfile,
 } from 'firebase/auth'
 import auth from '../firebase/firebase.config'
 import { useState } from 'react'
@@ -24,10 +26,11 @@ const Login = () => {
     e.preventDefault()
     console.log(e)
 
+    const name = e.target.username.value
     const email = e.target.email.value
     const password = e.target.password.value
     const checked = e.target.terms.checked
-    console.log(email, password, checked)
+    console.log(name, email, password, checked)
 
     if (password.length < 6) {
       // setLoginError('Password should be at least 6 character')
@@ -50,6 +53,12 @@ const Login = () => {
     createUserWithEmailAndPassword(auth, email, password)
       .then((result) => {
         console.log(result.user)
+
+        updateProfile(result.user, {
+          displayName: name,
+          photoURL:
+            'https://letsenhance.io/static/8f5e523ee6b2479e26ecc91b9c25261e/1015f/MainAfter.jpg',
+        })
 
         sendEmailVerification(result.user).then(() =>
           alert('Please Check You Email & Verify Your Account')
@@ -74,6 +83,25 @@ const Login = () => {
         >
           <div className="space-y-1 text-sm">
             <label
+              htmlFor="name"
+              className="block text-gray-400 dark:text-gray-600"
+            >
+              Your Name
+            </label>
+            <input
+              required
+              type="text"
+              name="username"
+              id="username"
+              placeholder="Username"
+              className="border w-full px-4 py-3 rounded-md border-gray-700 dark:border-gray-300 bg-gray-900 dark:bg-gray-50 text-gray-100 dark:text-gray-800 focus:border-indigo-400 focus:dark:border-indigo-600"
+            />
+            {loginTextError && (
+              <p className="text-red-500 text-[8px]">{loginTextError}</p>
+            )}
+          </div>
+          <div className="space-y-1 text-sm">
+            <label
               htmlFor="username"
               className="block text-gray-400 dark:text-gray-600"
             >
@@ -83,7 +111,7 @@ const Login = () => {
               required
               type="email"
               name="email"
-              id="username"
+              id="email"
               placeholder="Email"
               className="border w-full px-4 py-3 rounded-md border-gray-700 dark:border-gray-300 bg-gray-900 dark:bg-gray-50 text-gray-100 dark:text-gray-800 focus:border-indigo-400 focus:dark:border-indigo-600"
             />

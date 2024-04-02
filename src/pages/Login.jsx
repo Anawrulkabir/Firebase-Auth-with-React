@@ -23,7 +23,13 @@ const Login = () => {
     setPassLen('')
 
     signInWithEmailAndPassword(auth, email, password)
-      .then((result) => console.log(result.user))
+      .then((result) => {
+        if (!result.user.emailVerified) {
+          setPassLen('Please verify your email')
+        } else {
+          setPassLen('You have successfully logged in')
+        }
+      })
       .catch((error) => {
         console.log(error)
         // const errorMessage = 'Firebase: Error (auth/invalid-credential).'
@@ -38,10 +44,11 @@ const Login = () => {
     } else if (!/[A-Z]/.test(password)) {
       setPassLen('Password must contain uppercase letter')
       return
-    } else {
-      setPassLen('You have successfully logged in')
-      return
     }
+    //else {
+    //   setPassLen('You have successfully logged in')
+    //   return
+    // }
   }
   const handleForgetPassword = () => {
     // console.log('Sent reset email', emailRef.current.value)
