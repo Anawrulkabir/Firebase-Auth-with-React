@@ -62,7 +62,7 @@ const Login = () => {
   }
   return (
     <div>
-      <div className="w-1/2 mx-auto  my-[50px] max-w-md p-8 space-y-3 rounded-xl bg-gray-900 dark:bg-gray-50 text-gray-100 dark:text-gray-800">
+      <div className="w-full md:w-1/2 lg:w-1/2 mx-auto  my-[50px] max-w-md p-8 space-y-3 rounded-xl bg-gray-900 dark:bg-gray-50 text-gray-100 dark:text-gray-800">
         <h1 className="text-2xl font-bold text-center">Login</h1>
 
         {/* Main form using mail and password */}
